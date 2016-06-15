@@ -98,3 +98,19 @@ BOOST_AUTO_TEST_CASE( stop_bit_are_not_given )
     BOOST_CHECK_EQUAL( interface("com42").stop_bits().value(), type::one );
     BOOST_CHECK_EQUAL( interface("com42:14400").stop_bits().value(), type::one );
 }
+
+BOOST_AUTO_TEST_CASE( interface_with_alias )
+{
+    BOOST_CHECK_EQUAL( interface("com42(42)").alias(), "42" );
+    BOOST_CHECK_EQUAL( interface("com42(42)").device(), "com42" );
+    BOOST_CHECK_EQUAL( interface("com42(42):14400").alias(), "42" );
+    BOOST_CHECK_EQUAL( interface("com42(42):14400").device(), "com42" );
+    BOOST_CHECK_EQUAL( interface("com42(42):8n1").alias(), "42" );
+    BOOST_CHECK_EQUAL( interface("com42(42):14400,8n1").device(), "com42" );
+}
+
+BOOST_AUTO_TEST_CASE( interface_without_alias )
+{
+    BOOST_CHECK_EQUAL( interface("com42").alias(), "com42" );
+    BOOST_CHECK_EQUAL( interface("com42").device(), "com42" );
+}

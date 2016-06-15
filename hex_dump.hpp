@@ -13,6 +13,8 @@ public:
 
     void dump( const interface& config, const std::uint8_t*, std::size_t );
 private:
+    void line_header( const interface& config );
+
     std::ostream& output_;
 };
 

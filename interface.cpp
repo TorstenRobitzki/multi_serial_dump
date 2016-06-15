@@ -18,6 +18,17 @@ interface::interface( const std::string& config_text )
         throw std::invalid_argument( "device name required." );
 
     device_ = std::string( config_text, pos, end - pos );
+    alias_  = device_;
+
+    if ( device_.back() == ')' )
+    {
+        auto alias_pos = device_.find( '(' );
+        if ( alias_pos == std::string::npos )
+            throw std::invalid_argument( "alias begin not found: \"" + device_ + "\"" );
+
+        alias_  = std::string( device_, alias_pos + 1, device_.size() - 2 - alias_pos );
+        device_ = std::string( device_, 0, alias_pos );
+    }
 
     if ( end != config_text.size() )
         parse_communication_parameters( std::string( config_text, end +1, config_text.size() - end ) );
@@ -46,6 +57,11 @@ boost::asio::serial_port_base::character_size interface::character_size() const
 const std::string& interface::device() const
 {
     return device_;
+}
+
+const std::string& interface::alias() const
+{
+    return alias_;
 }
 
 char parity_to_text( boost::asio::serial_port_base::parity p )

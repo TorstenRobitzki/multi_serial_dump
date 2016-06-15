@@ -31,7 +31,7 @@ void hex_dump::dump( const interface& config, const std::uint8_t* begin, std::si
     std::size_t              char_cnt   = page_width;
     const std::uint8_t*      line_start = begin;
 
-    output_ << config.device() << ": ";
+    line_header( config );
 
     while ( size )
     {
@@ -54,9 +54,14 @@ void hex_dump::dump( const interface& config, const std::uint8_t* begin, std::si
             output_ << '\n';
 
             if ( size )
-                output_ << config.device() << ": ";
+                line_header( config );
 
             char_cnt   = page_width;
         }
     }
+}
+
+void hex_dump::line_header( const interface& config )
+{
+    output_ << config.alias() << ": ";
 }

@@ -27,6 +27,8 @@ public:
 
     const std::string& device() const;
 
+    const std::string& alias() const;
+
     void print( std::ostream& ) const;
 
 private:
@@ -37,6 +39,7 @@ private:
     boost::asio::serial_port_base::stop_bits        stop_bits_;
     boost::asio::serial_port_base::character_size   character_size_;
     std::string                                     device_;
+    std::string                                     alias_;
 };
 
 std::ostream& operator<<( std::ostream&, const interface& );
