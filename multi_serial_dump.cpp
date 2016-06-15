@@ -125,6 +125,17 @@ void usage( const po::options_description& options )
 {
     std::cout << "usage: multi_serial_dump [options]" << std::endl;
     std::cout << options << std::endl;
+
+    std::cout << "interface-defintion:\n";
+    std::cout << "  <name>[:(<baudrate>,<bits><parity><stop-bits>|<baudrare>|<bits><parity><stop-bits>]\n";
+    std::cout << "  <name> : <device-name>[(<alias>)]\n";
+
+    std::cout << "\nexamples:\n";
+    std::cout << "  multi_serial_dump --interface com1:14404,8n1\n";
+    std::cout << "  multi_serial_dump -I /dev/cu.1233(com2):14404,7o1.5\n";
+    std::cout << "  multi_serial_dump -I com1 -I com2\n";
+
+    std::cout << std::endl;
 }
 
 int main( int argc, const char** argv )
