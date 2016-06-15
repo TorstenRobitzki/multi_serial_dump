@@ -1,4 +1,5 @@
 #include <boost/program_options.hpp>
+#include <boost/asio/serial_port.hpp>
 
 #include <cstdlib>
 #include <ostream>
@@ -13,16 +14,27 @@ std::vector< interface > parse_interfaces( const po::variables_map& variables )
 {
     std::vector< interface > result;
 
-    for ( const auto& config : variables["include-path"].as< std::vector< std::string > >() )
+    for ( const auto& config : variables[ "interface" ].as< std::vector< std::string > >() )
         result.push_back( interface( config ) );
+
+    if ( result.empty() )
+        throw std::runtime_error( "no interface defined" );
 
     return result;
 }
 
+void print_interfaces( const std::vector< interface >& interfaces, std::ostream& output )
+{
+    output << "configured interfaces:\n";
+    for ( const auto& i : interfaces )
+        output << " * " << i << "\n";
+
+    output << std::endl;
+}
+
 void log_interfaces( const std::vector< interface >& interfaces, std::ostream& output )
 {
-    if ( interfaces.empty() )
-        throw std::runtime_error( "no interface defined" );
+
 }
 
 void usage( const po::options_description& options )
@@ -35,8 +47,9 @@ int main( int argc, const char** argv )
 {
     po::options_description options("options");
     options.add_options()
-        ("help,h", "produce help message")
-        ("interface,I", po::value< std::vector< std::string> >(), "definition of interface")
+        ( "help,h", "produce help message" )
+        ( "interface,I", po::value< std::vector< std::string> >(), "definition of interface" )
+        ( "verbose,v", "verbose output" )
     ;
 
     po::variables_map variables;
@@ -52,7 +65,12 @@ int main( int argc, const char** argv )
         }
         else
         {
+            const bool verbose    = variables.count( "verbose" );
             const auto interfaces = parse_interfaces( variables );
+
+            if ( verbose )
+                print_interfaces( interfaces, std::cout );
+
             log_interfaces( interfaces, std::cout );
 
             return EXIT_SUCCESS;

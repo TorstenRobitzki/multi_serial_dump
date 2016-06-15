@@ -1,8 +1,6 @@
 #include "interface.hpp"
 #include <regex>
 
-#include <iostream>
-
 interface::interface( const std::string& config_text )
     : baud_rate_( 9800 )
 {
@@ -48,6 +46,46 @@ boost::asio::serial_port_base::character_size interface::character_size() const
 const std::string& interface::device() const
 {
     return device_;
+}
+
+char parity_to_text( boost::asio::serial_port_base::parity p )
+{
+    using type = boost::asio::serial_port_base::parity::type;
+
+    switch ( p.value() )
+    {
+        case type::none:
+            return 'N';
+        case type::odd:
+            return 'O';
+        case type::even:
+            return 'E';
+    }
+
+    assert( !"can't be" );
+}
+
+std::string stop_bits_to_text( boost::asio::serial_port_base::stop_bits b )
+{
+    using type = boost::asio::serial_port_base::stop_bits::type;
+
+    switch ( b.value() )
+    {
+        case type::one:
+            return "1";
+        case type::onepointfive:
+            return "1.5";
+        case type::two:
+            return "2";
+    }
+
+    assert( !"can't be" );
+}
+
+void interface::print( std::ostream& o ) const
+{
+    o << device_ << ":" << baud_rate_.value() << ","
+        << character_size_.value() << parity_to_text( parity_ ) << stop_bits_to_text( stop_bits_ );
 }
 
 static boost::asio::serial_port_base::parity parity_from_text( const std::string& s )
@@ -119,4 +157,11 @@ void interface::parse_communication_parameters( const std::string& parameters )
     {
         throw std::invalid_argument( "unable to parse communication parameters: \"" + parameters + "\"" );
     }
+}
+
+std::ostream& operator<<( std::ostream& o, const interface& i )
+{
+    i.print( o );
+
+    return o;
 }

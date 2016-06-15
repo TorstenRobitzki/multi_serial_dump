@@ -2,6 +2,7 @@
 #define MULTI_SERIAL_DUMP_INTERFACE_HPP
 
 #include <string>
+#include <iosfwd>
 #include <boost/asio/serial_port_base.hpp>
 
 class interface
@@ -26,6 +27,8 @@ public:
 
     const std::string& device() const;
 
+    void print( std::ostream& ) const;
+
 private:
     void parse_communication_parameters( const std::string& parameters );
 
@@ -35,5 +38,7 @@ private:
     boost::asio::serial_port_base::character_size   character_size_;
     std::string                                     device_;
 };
+
+std::ostream& operator<<( std::ostream&, const interface& );
 
 #endif
