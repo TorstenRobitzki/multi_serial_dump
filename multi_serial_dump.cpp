@@ -5,6 +5,7 @@
 #include <ostream>
 #include <iostream>
 #include <vector>
+#include <memory>
 
 #include "interface.hpp"
 #include "hex_dump.hpp"
@@ -33,10 +34,17 @@ void print_interfaces( const std::vector< interface >& interfaces, std::ostream&
     output << std::endl;
 }
 
-struct serial_port {
+struct serial_port
+{
     interface                   configuration;
     boost::asio::serial_port    port;
     std::vector< std::uint8_t > read_buffer;
+
+    serial_port( const interface& c, boost::asio::io_service& q )
+        : configuration( c )
+        , port( q )
+        , read_buffer( 1024 )
+    {}
 };
 
 template < class O >
@@ -56,9 +64,9 @@ std::vector< serial_port > open_ports(
     std::vector< serial_port > ports;
 
     std::transform( interfaces.begin(), interfaces.end(), back_inserter( ports ),
-        [&queue]( const interface& config ) -> serial_port
+        [&queue]( const interface& config )
         {
-            serial_port port{ config, boost::asio::serial_port( queue ), std::vector< std::uint8_t >( 1024 ) };
+            serial_port port( config, queue );
 
             boost::system::error_code ec;
             port.port.open( config.device(), ec );
@@ -77,26 +85,36 @@ std::vector< serial_port > open_ports(
 
     return ports;
 }
+
 void log_interfaces( const std::vector< interface >& interfaces, hex_dump& output )
 {
-    boost::asio::io_service    queue;
+    using namespace std::placeholders;
+
+    boost::asio::io_service queue;
     std::vector< serial_port > ports = open_ports( interfaces, queue );
 
-    for ( auto &port : ports )
+    auto read_cb = std::function< void(
+                        serial_port& port,
+                        const boost::system::error_code& error,
+                        std::size_t bytes_transferred ) >();
+
+    read_cb = [&output, &read_cb]( serial_port& port, const boost::system::error_code& error, std::size_t bytes_transferred )
     {
-        std::function<
-            void( const boost::system::error_code& error, std::size_t bytes_transferred ) > read_cb;
+        if ( error )
+            throw std::runtime_error(
+                "error reading from \"" + port.configuration.device() + "\": " + error.message() );
 
-        read_cb = [&]( const boost::system::error_code& error, std::size_t bytes_transferred )
-        {
-            output.dump( port.configuration, &port.read_buffer[ 0 ], bytes_transferred );
-
-            port.port.async_read_some(
-                boost::asio::buffer( port.read_buffer ), read_cb );
-        };
+        output.dump( port.configuration, &port.read_buffer[ 0 ], bytes_transferred );
 
         port.port.async_read_some(
-            boost::asio::buffer( port.read_buffer ), read_cb );
+            boost::asio::buffer( port.read_buffer ), std::bind( read_cb, std::ref( port ), _1, _2 ) );
+    };
+
+    for ( auto& port : ports )
+    {
+        port.port.async_read_some(
+            boost::asio::buffer( port.read_buffer ),
+            std::bind( read_cb, std::ref( port ), _1, _2 ) );
     }
 
     for ( ; ; )
