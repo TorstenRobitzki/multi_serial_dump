@@ -8,7 +8,7 @@ endif()
 
 add_compile_options(-std=c++11 -Wall -pedantic -Wno-logical-op-parentheses)
 
-add_executable(multi_serial_dump multi_serial_dump.cpp interface.cpp)
+add_executable(multi_serial_dump multi_serial_dump.cpp interface.cpp hex_dump.cpp)
 target_link_libraries(multi_serial_dump ${Boost_LIBRARIES})
 
 add_executable(interface_tests interface_tests.cpp interface.cpp)
