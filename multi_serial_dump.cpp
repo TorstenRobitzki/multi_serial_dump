@@ -40,7 +40,7 @@ struct serial_port
     boost::asio::serial_port    port;
     std::vector< std::uint8_t > read_buffer;
 
-    serial_port( const interface& c, boost::asio::io_service& q )
+    serial_port( const interface& c, boost::asio::io_context& q )
         : configuration( c )
         , port( q )
         , read_buffer( 1024 )
@@ -59,7 +59,7 @@ void set_port_option( serial_port& port, const O& option,
 }
 
 std::vector< serial_port > open_ports(
-    const std::vector< interface >& interfaces, boost::asio::io_service& queue )
+    const std::vector< interface >& interfaces, boost::asio::io_context& queue )
 {
     std::vector< serial_port > ports;
 
@@ -90,7 +90,7 @@ void log_interfaces( const std::vector< interface >& interfaces, hex_dump& outpu
 {
     using namespace std::placeholders;
 
-    boost::asio::io_service queue;
+    boost::asio::io_context queue;
     std::vector< serial_port > ports = open_ports( interfaces, queue );
 
     auto read_cb = std::function< void(
